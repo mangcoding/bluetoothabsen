@@ -24,4 +24,8 @@ public class MainActivity extends AppCompatActivity {
     public void viewabsen(View view) {
 
     }
+
+    public void scanDevices() {
+
+    }
 }

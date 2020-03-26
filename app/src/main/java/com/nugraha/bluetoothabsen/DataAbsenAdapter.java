@@ -25,6 +25,9 @@ public class DataAbsenAdapter {
     }
 
     public void generateDataDummy() {
+        SQLiteDatabase db = myhelper.getWritableDatabase();
+        db.execSQL(myDbHelper.TRUNCATE_TABLE);
+        db.execSQL(myDbHelper.RESET_INDEX);
         this.insertData("20:5e:f7:55:08:ce","Nabilla","085793473XXX");
         this.insertData("d0:81:7a:9f:c8:a0","Nugraha Macbook Air","085759402XXX");
         this.insertData("58:d9:d5:b3:6c:e1","Nugraha","085759402XXX");
@@ -79,6 +82,8 @@ public class DataAbsenAdapter {
         private static final String CREATE_TABLE = "CREATE TABLE "+TABLE_NAME+
                 " ("+UID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+MACID+" VARCHAR(255) ,"+NAME+" VARCHAR(255) ,"+ PHONE+" VARCHAR(225));";
         private static final String DROP_TABLE ="DROP TABLE IF EXISTS "+TABLE_NAME;
+        private static final String TRUNCATE_TABLE="DELETE FROM "+TABLE_NAME;
+        private static final String RESET_INDEX= "DELETE from sqlite_sequence where name='"+TABLE_NAME+"'";
         private Context context;
 
         public myDbHelper(Context context) {
