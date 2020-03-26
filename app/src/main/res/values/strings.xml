@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">BluetoothAbsen</string>
+    <string name="view_data">Lihat Peserta</string>
+    <string name="view_absen">Lihat Absen</string>
+</resources>
