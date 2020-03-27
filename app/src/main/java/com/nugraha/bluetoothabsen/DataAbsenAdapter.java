@@ -6,8 +6,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import android.util.Log;
+
 public class DataAbsenAdapter {
     myDbHelper myhelper;
+
     public DataAbsenAdapter(Context context)
     {
         myhelper = new myDbHelper(context);
@@ -26,12 +32,18 @@ public class DataAbsenAdapter {
 
     public void generateDataDummy() {
         SQLiteDatabase db = myhelper.getWritableDatabase();
-        db.execSQL(myDbHelper.TRUNCATE_TABLE);
-        db.execSQL(myDbHelper.RESET_INDEX);
-        this.insertData("20:5e:f7:55:08:ce","Nabilla","085793473XXX");
-        this.insertData("d0:81:7a:9f:c8:a0","Nugraha Macbook Air","085759402XXX");
-        this.insertData("58:d9:d5:b3:6c:e1","Nugraha","085759402XXX");
-        this.insertData("a8:7d:12:d8:3b:5e","Imas Yukadarwati","082116961XXX");
+        String count = "SELECT count(_id) FROM "+myDbHelper.TABLE_NAME;
+        Cursor mcursor = db.rawQuery(count, null);
+        mcursor.moveToFirst();
+        int icount = mcursor.getInt(0);
+        if (icount <1) {
+            db.execSQL(myDbHelper.TRUNCATE_TABLE);
+            db.execSQL(myDbHelper.RESET_INDEX);
+            this.insertData("20:5e:f7:55:08:ce", "Nabilla", "085793473XXX");
+            this.insertData("d0:81:7a:9f:c8:a0", "Nugraha Macbook Air", "085759402XXX");
+            this.insertData("58:d9:d5:b3:6c:e1", "Nugraha", "085759402XXX");
+            this.insertData("a8:7d:12:d8:3b:5e", "Imas Yukadarwati", "082116961XXX");
+        }
     }
 
     public String getData()
@@ -47,6 +59,30 @@ public class DataAbsenAdapter {
             String name =cursor.getString(cursor.getColumnIndex(myDbHelper.NAME));
             String phone =cursor.getString(cursor.getColumnIndex(myDbHelper.PHONE));
             buffer.append(cid+ "   " + macid + "   " + name + "   " + phone + "\n");
+        }
+        return buffer.toString();
+    }
+
+    public String getAbsen()
+    {
+        SQLiteDatabase db = myhelper.getWritableDatabase();
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String MY_QUERY = "SELECT A.date, A.Macid, B.Name FROM "+myDbHelper.TABLE_PRESENT+" A LEFT JOIN "+myDbHelper.TABLE_NAME+" B ON B."+
+                myDbHelper.MACID+"=A."+myDbHelper.MACID+" WHERE A.date='"+date+"'";
+        //Log.d("query", MY_QUERY);
+        Cursor cursor = db.rawQuery(MY_QUERY,null);
+        int total = cursor.getCount();
+        StringBuffer buffer= new StringBuffer();
+        if (total == 0) {
+            buffer.append("Daftar Kehadiran Hari ini tanggal "+date+" masih kosong");
+            return buffer.toString();
+        }
+        while (cursor.moveToNext())
+        {
+            String tgl =cursor.getString(cursor.getColumnIndex(myDbHelper.TGL));
+            String macid =cursor.getString(cursor.getColumnIndex(myDbHelper.MACID));
+            String name =cursor.getString(cursor.getColumnIndex(myDbHelper.NAME));
+            buffer.append(tgl+ "   " + macid + "   " + name);
         }
         return buffer.toString();
     }
@@ -74,14 +110,19 @@ public class DataAbsenAdapter {
     {
         private static final String DATABASE_NAME = "DbAbsen";    // Database Name
         private static final String TABLE_NAME = "devices";   // Table Name
-        private static final int DATABASE_Version = 2;    // Database Version
-        private static final String UID="_id";     // Column I (Primary Key)
-        private static final String MACID = "Macid";    //Column II
-        private static final String NAME= "Name";    // Column III
-        private static final String PHONE= "Phone";    // Column III
+        private static final String TABLE_PRESENT = "presents";   // Table Absen
+        private static final int DATABASE_Version = 4;    // Database Version
+        private static final String UID="_id";
+        private static final String MACID = "Macid";
+        private static final String TGL = "date";
+        private static final String NAME= "Name";
+        private static final String PHONE= "Phone";
         private static final String CREATE_TABLE = "CREATE TABLE "+TABLE_NAME+
                 " ("+UID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+MACID+" VARCHAR(255) ,"+NAME+" VARCHAR(255) ,"+ PHONE+" VARCHAR(225));";
+        private static final String CREATE_TABLE_PRESENT = "CREATE TABLE "+TABLE_PRESENT+
+                " ("+UID+" INTEGER PRIMARY KEY AUTOINCREMENT, "+TGL+" TEXT ,"+MACID+" VARCHAR(255) , status VARCHAR(255), created VARCHAR(255) );"; //Status A=Absent, I=Permit, P=Present, S=Sick
         private static final String DROP_TABLE ="DROP TABLE IF EXISTS "+TABLE_NAME;
+        private static final String DROP_TABLE_PRESENT ="DROP TABLE IF EXISTS "+TABLE_PRESENT;
         private static final String TRUNCATE_TABLE="DELETE FROM "+TABLE_NAME;
         private static final String RESET_INDEX= "DELETE from sqlite_sequence where name='"+TABLE_NAME+"'";
         private Context context;
@@ -95,6 +136,7 @@ public class DataAbsenAdapter {
 
             try {
                 db.execSQL(CREATE_TABLE);
+                db.execSQL(CREATE_TABLE_PRESENT);
             } catch (Exception e) {
                 Message.message(context,""+e);
             }
@@ -105,6 +147,7 @@ public class DataAbsenAdapter {
             try {
                 Message.message(context,"OnUpgrade");
                 db.execSQL(DROP_TABLE);
+                db.execSQL(DROP_TABLE_PRESENT);
                 onCreate(db);
             }catch (Exception e) {
                 Message.message(context,""+e);

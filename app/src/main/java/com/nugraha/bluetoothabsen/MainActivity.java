@@ -22,7 +22,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void viewabsen(View view) {
-
+        String data = helper.getAbsen();
+        Message.message(this,data);
     }
 
     public void scanDevices() {
