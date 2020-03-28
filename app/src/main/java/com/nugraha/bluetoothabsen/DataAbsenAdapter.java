@@ -19,7 +19,7 @@ public class DataAbsenAdapter {
         myhelper = new myDbHelper(context);
     }
 
-    public long insertData(String macid, String name, String phone)
+    private long insertData(String macid, String name, String phone)
     {
         SQLiteDatabase dbb = myhelper.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
@@ -27,6 +27,16 @@ public class DataAbsenAdapter {
         contentValues.put(myDbHelper.NAME, name);
         contentValues.put(myDbHelper.PHONE, phone);
         long id = dbb.insert(myDbHelper.TABLE_NAME, null , contentValues);
+        return id;
+    }
+
+    private long insertDataAbsen(String macid, String date)
+    {
+        SQLiteDatabase dbb = myhelper.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(myDbHelper.MACID, macid);
+        contentValues.put(myDbHelper.TGL, date);
+        long id = dbb.insert(myDbHelper.TABLE_PRESENT, null , contentValues);
         return id;
     }
 
@@ -40,7 +50,7 @@ public class DataAbsenAdapter {
             db.execSQL(myDbHelper.TRUNCATE_TABLE);
             db.execSQL(myDbHelper.RESET_INDEX);
             this.insertData("20:5e:f7:55:08:ce", "Nabilla", "085793473XXX");
-            this.insertData("d0:81:7a:9f:c8:a0", "Nugraha Macbook Air", "085759402XXX");
+            this.insertData("d0:81:7a:9f:c8:a1", "Nugraha Macbook Air", "085759402XXX");
             this.insertData("58:d9:d5:b3:6c:e1", "Nugraha", "085759402XXX");
             this.insertData("a8:7d:12:d8:3b:5e", "Imas Yukadarwati", "082116961XXX");
         }
@@ -63,13 +73,51 @@ public class DataAbsenAdapter {
         return buffer.toString();
     }
 
+    public String checkAbsen(String MacAddress) {
+        SQLiteDatabase db = myhelper.getWritableDatabase();
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        String MY_QUERY = "SELECT A.Macid, B.Name FROM "+myDbHelper.TABLE_PRESENT+" A LEFT JOIN "+myDbHelper.TABLE_NAME+" B ON B."+
+                myDbHelper.MACID+"=A."+myDbHelper.MACID+" WHERE A.Macid='"+MacAddress+"' AND A.date='"+date+"'";
+        Cursor cursor = db.rawQuery(MY_QUERY,null);
+        int total = cursor.getCount();
+        StringBuffer buffer= new StringBuffer();
+        if (total == 0) {
+            String ResultAbsen = InsertAbsen(MacAddress,date);
+            buffer.append(ResultAbsen);
+        }else {
+            cursor.moveToFirst();
+            String macid =cursor.getString(cursor.getColumnIndex(myDbHelper.MACID));
+            String name =cursor.getString(cursor.getColumnIndex(myDbHelper.NAME));
+            buffer.append(name+" Sudah Absen Hari ini");
+        }
+        return buffer.toString();
+    }
+
+    private String InsertAbsen(String MacAddress,String date) {
+        SQLiteDatabase db = myhelper.getWritableDatabase();
+        String MY_QUERY = "SELECT Macid FROM "+myDbHelper.TABLE_NAME+" WHERE Macid='"+MacAddress+"'";
+        Cursor cursor = db.rawQuery(MY_QUERY,null);
+        int total = cursor.getCount();
+        if (total > 0) {
+            //Input to Absen Table
+            long ResultId = insertDataAbsen(MacAddress,date);
+            if (ResultId > 0) {
+                return "Record Saved";
+            }else{
+                return "Failed to save to the databases";
+            }
+        }else {
+            return "Device unknown";
+        }
+    }
+
     public String getAbsen()
     {
         SQLiteDatabase db = myhelper.getWritableDatabase();
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String MY_QUERY = "SELECT A.date, A.Macid, B.Name FROM "+myDbHelper.TABLE_PRESENT+" A LEFT JOIN "+myDbHelper.TABLE_NAME+" B ON B."+
                 myDbHelper.MACID+"=A."+myDbHelper.MACID+" WHERE A.date='"+date+"'";
-        //Log.d("query", MY_QUERY);
+        Log.d("query", MY_QUERY);
         Cursor cursor = db.rawQuery(MY_QUERY,null);
         int total = cursor.getCount();
         StringBuffer buffer= new StringBuffer();
@@ -82,7 +130,7 @@ public class DataAbsenAdapter {
             String tgl =cursor.getString(cursor.getColumnIndex(myDbHelper.TGL));
             String macid =cursor.getString(cursor.getColumnIndex(myDbHelper.MACID));
             String name =cursor.getString(cursor.getColumnIndex(myDbHelper.NAME));
-            buffer.append(tgl+ "   " + macid + "   " + name);
+            buffer.append(tgl+ "   " + macid + "   " + name + "\n");
         }
         return buffer.toString();
     }
@@ -111,7 +159,7 @@ public class DataAbsenAdapter {
         private static final String DATABASE_NAME = "DbAbsen";    // Database Name
         private static final String TABLE_NAME = "devices";   // Table Name
         private static final String TABLE_PRESENT = "presents";   // Table Absen
-        private static final int DATABASE_Version = 4;    // Database Version
+        private static final int DATABASE_Version = 6;    // Database Version
         private static final String UID="_id";
         private static final String MACID = "Macid";
         private static final String TGL = "date";
