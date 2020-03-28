@@ -41,14 +41,14 @@
         android:layout_weight="1"
         android:gravity="center|bottom"
         android:orientation="vertical">
+
         <Button
             android:id="@+id/btn_scan"
             style="?android:attr/buttonStyleSmall"
             android:layout_width="145dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal|center"
-            android:text="Scan Devices"
             android:layout_marginBottom="25sp"
-            />
+            android:text="Scan Devices" />
     </LinearLayout>
 </LinearLayout>

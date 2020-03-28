@@ -30,16 +30,6 @@ public class DataAbsenAdapter {
         return id;
     }
 
-    private long insertDataAbsen(String macid, String date)
-    {
-        SQLiteDatabase dbb = myhelper.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(myDbHelper.MACID, macid);
-        contentValues.put(myDbHelper.TGL, date);
-        long id = dbb.insert(myDbHelper.TABLE_PRESENT, null , contentValues);
-        return id;
-    }
-
     public void generateDataDummy() {
         SQLiteDatabase db = myhelper.getWritableDatabase();
         String count = "SELECT count(_id) FROM "+myDbHelper.TABLE_NAME;
@@ -51,7 +41,7 @@ public class DataAbsenAdapter {
             db.execSQL(myDbHelper.RESET_INDEX);
             this.insertData("20:5e:f7:55:08:ce", "Nabilla", "085793473XXX");
             this.insertData("d0:81:7a:9f:c8:a1", "Nugraha Macbook Air", "085759402XXX");
-            this.insertData("58:d9:d5:b3:6c:e1", "Nugraha", "085759402XXX");
+            this.insertData("1c:b7:2c:49:82:8a", "Nugraha", "085759402XXX");
             this.insertData("a8:7d:12:d8:3b:5e", "Imas Yukadarwati", "082116961XXX");
         }
     }
@@ -111,6 +101,16 @@ public class DataAbsenAdapter {
         }
     }
 
+    private long insertDataAbsen(String macid, String date)
+    {
+        SQLiteDatabase dbb = myhelper.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(myDbHelper.MACID, macid);
+        contentValues.put(myDbHelper.TGL, date);
+        long id = dbb.insert(myDbHelper.TABLE_PRESENT, null , contentValues);
+        return id;
+    }
+
     public String getAbsen()
     {
         SQLiteDatabase db = myhelper.getWritableDatabase();
@@ -160,7 +160,7 @@ public class DataAbsenAdapter {
         private static final String TABLE_NAME = "devices";   // Table Name
         private static final String TABLE_PRESENT = "presents";   // Table Absen
         private static final int DATABASE_Version = 6;    // Database Version
-        private static final String UID="_id";
+        private static final String UID = "_id";
         private static final String MACID = "Macid";
         private static final String TGL = "date";
         private static final String NAME= "Name";
