@@ -93,6 +93,15 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(discoveryFinishReceiver, filter);
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        Set<BluetoothDevice> pairedDevices = bluetoothAdapter.getBondedDevices();
+        // If there are paired devices, add each one to the ArrayAdapter
+        if (pairedDevices.size() > 0) {
+            for (BluetoothDevice device : pairedDevices) {
+                pairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
+            }
+        } else {
+            pairedDevicesAdapter.add(getString(R.string.none_paired));
+        }
 
         //Handling listview item click event
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -141,8 +150,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("device",device.getAddress());
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
                     discoveredDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
-                }else{
-                    pairedDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
                 if (discoveredDevicesAdapter.getCount() == 0) {
