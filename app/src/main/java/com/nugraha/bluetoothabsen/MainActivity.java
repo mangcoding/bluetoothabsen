@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothHeadset;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         //locate listviews and attatch the adapters
         ListView listView = (ListView) dialog.findViewById(R.id.pairedDeviceList);
         ListView listView2 = (ListView) dialog.findViewById(R.id.discoveredDeviceList);
+
         listView.setAdapter(pairedDevicesAdapter);
         listView2.setAdapter(discoveredDevicesAdapter);
 
@@ -120,6 +122,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(View v) {
+                discoveredDevicesAdapter.clear();
+                pairedDevicesAdapter.clear();
+                bluetoothAdapter.cancelDiscovery();
                 dialog.dismiss();
             }
         });
@@ -131,9 +136,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d("device",device.getAddress());
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
                     discoveredDevicesAdapter.add(device.getName() + "\n" + device.getAddress());
                 }else{
@@ -143,11 +148,15 @@ public class MainActivity extends AppCompatActivity {
                 if (discoveredDevicesAdapter.getCount() == 0) {
                     discoveredDevicesAdapter.add(getString(R.string.none_found));
                 }
+            }else{
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                Log.d("device",device.getAddress());
             }
         }
     };
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case REQUEST_ENABLE_BLUETOOTH:
                 if (resultCode == Activity.RESULT_OK) {
@@ -164,6 +173,10 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         if (!bluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            Intent discoverableIntent =
+                    new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            startActivity(discoverableIntent);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BLUETOOTH);
         }
     }
